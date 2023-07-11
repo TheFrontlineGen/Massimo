@@ -2,7 +2,6 @@ const axios = require('axios');
 const chalk = require('chalk');
 const { MessageEmbed } = require('discord.js');
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const ping = require('ping');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -10,7 +9,6 @@ module.exports = {
     .setDescription('Check ping of Luckynet and Race-Life servers and find the optimal server for you.'),
 
   async execute(interaction, client) {
-
     if (interaction.guildId !== '793620741509218315' && interaction.guildId !== '968320703197745182' && !interaction.member.permissions.has('ADMINISTRATOR')) {
       return interaction.reply({
         content: 'You do not have permission to use this command.',
@@ -19,11 +17,8 @@ module.exports = {
     }
 
     try {
-      // Ping the domains
-      const domain1 = '135.148.40.52';
-      const domain2 = 'luckynetserver.duckdns.org';
-      const ping1 = await ping.promise.probe(domain1);
-      const ping2 = await ping.promise.probe(domain2);
+      const response = await axios.get('https://ping-api.frontlinegen.repl.co');
+      const pingData = response.data;
 
       // Construct the content of the embed
       interaction.reply({
@@ -34,7 +29,7 @@ module.exports = {
             url: `https://massimo.race-life.net`
           },
           title: `Ping Results`,
-          description: `**Race-Life:** ${ping1.time}ms\n**Luckynet Racing:** ${ping2.time}ms\n\n **Test Region:** 🇺🇸 Iowa`,
+          description: `**Race-Life:** ${pingData['race-life']}ms\n**Luckynet Racing:** ${pingData['luckynet']}ms\n\n **Test Region:** 🇺🇸 Iowa`,
           footer: {
             text: `Made with ❤️ by Frontline Genesis | twitter.com/thefrontlinegen`
           },
@@ -43,9 +38,9 @@ module.exports = {
         ephemeral: false
       });
     } catch (error) {
-      console.error(`Failed to retrieve servers from API: ${error}`);
+      console.error(`Failed to retrieve ping data from API: ${error}`);
       await interaction.reply({
-        content: 'Failed to retrieve servers from API. Please try again later.',
+        content: 'Failed to retrieve ping data from API. Please try again later.',
         ephemeral: true,
       });
     }
